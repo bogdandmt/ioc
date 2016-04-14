@@ -58,11 +58,6 @@ public class AnnotationContext implements AbstractAnnotationContext {
 		for (Class<?> cls : componentClasses) {
 			if (!cls.isInterface()) {
 				Object newInstance = cls.newInstance();
-				for (Class<?> ifs : componentClasses) {
-					if (ifs.isAssignableFrom(cls) && ifs.isInterface()) {
-						instances.put(ifs, newInstance);
-					}
-				}
 
 				for (Field field : cls.getDeclaredFields()) {
 					if (field.isAnnotationPresent(Inject.class)) {
@@ -70,6 +65,17 @@ public class AnnotationContext implements AbstractAnnotationContext {
 						field.setAccessible(true);
 						field.set(newInstance, proxies.get(field.getType()));
 						field.setAccessible(accessible);
+					}
+				}
+
+				Class<?>[] interfaces = cls.getInterfaces();
+				if (interfaces.length == 0) {
+					// TODO CGLib impl
+				} else {
+					for (Class<?> interf : interfaces) {
+						if (interf.isAnnotationPresent(Component.class)) {
+							instances.put(interf, newInstance);
+						}
 					}
 				}
 			}
